@@ -18,7 +18,7 @@ public class TypeMapper extends JCasAnnotator_ImplBase {
     super.initialize(context);
 
     // TODO: put the path to the context config
-    String fileName = "typeMapperConfig.xml";
+    String fileName = "TypeMapperConfig.xml";
     try {
       this.rules = RulesFileLoader.loadRulesFromFile(fileName);
     } catch (JAXBException e) {
