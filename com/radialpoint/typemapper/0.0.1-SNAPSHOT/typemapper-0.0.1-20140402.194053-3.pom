@@ -106,7 +106,7 @@
                     </executions>
                     <configuration>
                         <repositoryName>type-mapper-for-uima</repositoryName>      <!-- github repo name -->
-                        <repositoryOwner>dushonok</repositoryOwner>    <!-- github username  -->
+                        <repositoryOwner>radialpoint</repositoryOwner>
                         
                         <server>github</server>
                 
