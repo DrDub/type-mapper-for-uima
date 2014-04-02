@@ -1,6 +1,6 @@
-package com.radialpoint.typemapper;
+package com.radialpoint.uima.typemapper;
 
-import com.radialpoint.typemapper.Rule;
+import com.radialpoint.uima.typemapper.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
