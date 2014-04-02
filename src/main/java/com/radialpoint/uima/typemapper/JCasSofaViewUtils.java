@@ -1,4 +1,4 @@
-package com.radialpoint.typemapper;
+package com.radialpoint.uima.typemapper;
 
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;

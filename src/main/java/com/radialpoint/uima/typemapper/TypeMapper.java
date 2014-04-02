@@ -1,4 +1,4 @@
-package com.radialpoint.typemapper;
+package com.radialpoint.uima.typemapper;
 
 import javax.xml.bind.JAXBException;
 

@@ -19,7 +19,7 @@
 //	under the License.
 
 
-package com.radialpoint.typemapper;
+package com.radialpoint.uima.typemapper;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
