@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+	<rule>
+		<input>
+			de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence
+		</input>
+		<output>
+			com.radialpoint.nlp.types.Sentence
+		</output>
+	</rule>
+	<rule>
+		<input>
+			de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token
+		</input>
+		<output>
+			com.radialpoint.nlp.types.Token
+		</output>
+	</rule>
+</rules>

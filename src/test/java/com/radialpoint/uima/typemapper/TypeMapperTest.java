@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import org.apache.uima.UIMAException;
 import org.apache.uima.analysis_engine.AnalysisEngine;
+import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.cas.FSIndex;
@@ -48,142 +49,148 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TypeMapperTest {
-	// Index name constants.
-	public static final String ANNOT_SET_INDEX = "Annotation Set Index";
 
-	public static final String ANNOT_BAG_INDEX = "Annotation Bag Index";
+  // The functions setUp() and initCAS() were taken from
+  // IndexSerializationTest.java by apache / uima-uimaj / uimaj-2.2.1 / uimaj-2.2.1-incubating
+  // TODO: Go over the code and remove unused entities/lines
 
-	public static final String TOKEN_TYPE = "Token";
+  public static final String ANNOT_SET_INDEX = "Annotation Set Index";
 
-	public static final String TOKEN_TYPE_FEAT = "type";
+  public static final String ANNOT_BAG_INDEX = "Annotation Bag Index";
 
-	public static final String TOKEN_TYPE_FEAT_Q = TOKEN_TYPE
-			+ TypeSystem.FEATURE_SEPARATOR + TOKEN_TYPE_FEAT;
+  public static final String TOKEN_TYPE = "Token";
 
-	public static final String TOKEN_TYPE_TYPE = "TokenType";
+  public static final String TOKEN_TYPE_FEAT = "type";
 
-	public static final String WORD_TYPE = "Word";
+  public static final String TOKEN_TYPE_FEAT_Q = TOKEN_TYPE + TypeSystem.FEATURE_SEPARATOR + TOKEN_TYPE_FEAT;
 
-	public static final String SEP_TYPE = "Separator";
+  public static final String TOKEN_TYPE_TYPE = "TokenType";
 
-	public static final String EOS_TYPE = "EndOfSentence";
+  public static final String WORD_TYPE = "Word";
 
-	public static final String SENT_TYPE = "Sentence";
+  public static final String SEP_TYPE = "Separator";
 
-	private CASMgr casMgr;
+  public static final String EOS_TYPE = "EndOfSentence";
 
-	private CAS cas;
+  public static final String SENT_TYPE = "Sentence";
 
-	private Type annotationType;
+  private CASMgr casMgr;
 
-	private Type wordType;
+  private CAS cas;
 
-	private Type separatorType;
+  private JCas jCas;
 
-	private Type eosType;
+  private Type annotationType;
 
-	private Type tokenType;
+  private Type wordType;
 
-	private Feature tokenTypeFeature;
+  private Type separatorType;
 
-	private Type sentenceType;
+  private Type eosType;
 
-	private Feature startFeature;
+  private Type tokenType;
 
-	private Feature endFeature;
+  private Feature tokenTypeFeature;
 
-	@Before
-	public void setUp() throws Exception {
+  private Type sentenceType;
 
-		casMgr = initCAS();
-		cas = (CASImpl) casMgr;
+  private Feature startFeature;
 
-		TypeSystem ts = cas.getTypeSystem();
-		wordType = ts.getType(WORD_TYPE);
-		// assert(wordType != null);
-		separatorType = ts.getType(SEP_TYPE);
-		eosType = ts.getType(EOS_TYPE);
-		tokenType = ts.getType(TOKEN_TYPE);
-		tokenTypeFeature = ts.getFeatureByFullName(TOKEN_TYPE_FEAT_Q);
-		startFeature = ts.getFeatureByFullName(CAS.FEATURE_FULL_NAME_BEGIN);
-		endFeature = ts.getFeatureByFullName(CAS.FEATURE_FULL_NAME_END);
-		sentenceType = ts.getType(SENT_TYPE);
-		annotationType = ts.getType(CAS.TYPE_NAME_ANNOTATION);
-		assert (annotationType != null);
-	}
+  private Feature endFeature;
 
-	// Initialize the first CAS.
-	private static CASMgr initCAS() {
-		// // Create a CASMgr. Ensures existence of AnnotationFS type.
-		CASMgr casMgr = CASFactory.createCAS();
-		try {
-			CasCreationUtils.setupTypeSystem(casMgr,
-					(TypeSystemDescription) null);
-		} catch (ResourceInitializationException e) {
-			e.printStackTrace();
-		}
-		// Create a writable type system.
-		TypeSystemMgr tsa = casMgr.getTypeSystemMgr();
+  @Before
+  public void setUp() throws Exception {
 
-		// Add new types and features.
-		Type topType = tsa.getTopType();
-		Type annotType = tsa.getType(CAS.TYPE_NAME_ANNOTATION);
+    casMgr = initCAS();
+    cas = (CASImpl) casMgr;
 
-		// assert(annotType != null);
-		tsa.addType(SENT_TYPE, annotType);
-		Type tokenType = tsa.addType(TOKEN_TYPE, annotType);
-		Type tokenTypeType = tsa.addType(TOKEN_TYPE_TYPE, topType);
-		tsa.addType(WORD_TYPE, tokenTypeType);
-		tsa.addType(SEP_TYPE, tokenTypeType);
-		tsa.addType(EOS_TYPE, tokenTypeType);
-		tsa.addFeature(TOKEN_TYPE_FEAT, tokenType, tokenTypeType);
+    TypeSystem ts = cas.getTypeSystem();
+    wordType = ts.getType(WORD_TYPE);
+    // assert(wordType != null);
+    separatorType = ts.getType(SEP_TYPE);
+    eosType = ts.getType(EOS_TYPE);
+    tokenType = ts.getType(TOKEN_TYPE);
+    tokenTypeFeature = ts.getFeatureByFullName(TOKEN_TYPE_FEAT_Q);
+    startFeature = ts.getFeatureByFullName(CAS.FEATURE_FULL_NAME_BEGIN);
+    endFeature = ts.getFeatureByFullName(CAS.FEATURE_FULL_NAME_END);
+    sentenceType = ts.getType(SENT_TYPE);
+    annotationType = ts.getType(CAS.TYPE_NAME_ANNOTATION);
+    assert (annotationType != null);
 
-		// Commit the type system.
-		((CASImpl) casMgr).commitTypeSystem();
+    jCas = cas.getJCas();
+  }
 
-		// Create the Base indexes.
-		try {
-			casMgr.initCASIndexes();
-		} catch (CASException e) {
-			e.printStackTrace();
-		}
+  // Initialize the first CAS.
+  private static CASMgr initCAS() throws ResourceInitializationException {
+    // Create a CASMgr. Ensures existence of AnnotationFS type.
+    CASMgr casMgr = CASFactory.createCAS();
+    CasCreationUtils.setupTypeSystem(casMgr, (TypeSystemDescription) null);
 
-		FSIndexRepositoryMgr irm = casMgr.getIndexRepositoryMgr();
-		FSIndexComparator comp = irm.createComparator();
-		Type annotation = tsa.getType(CAS.TYPE_NAME_ANNOTATION);
-		comp.setType(annotation);
-		comp.addKey(
-				annotation.getFeatureByBaseName(CAS.FEATURE_BASE_NAME_BEGIN),
-				FSIndexComparator.STANDARD_COMPARE);
-		comp.addKey(annotation.getFeatureByBaseName(CAS.FEATURE_BASE_NAME_END),
-				FSIndexComparator.REVERSE_STANDARD_COMPARE);
-		irm.createIndex(comp, ANNOT_BAG_INDEX, FSIndex.BAG_INDEX);
-		irm.createIndex(comp, ANNOT_SET_INDEX, FSIndex.SET_INDEX);
+    // Create a writable type system.
+    TypeSystemMgr tsa = casMgr.getTypeSystemMgr();
 
-		// Commit the index repository.
-		irm.commit();
-		// assert(cas.getIndexRepositoryMgr().isCommitted());
+    // Add new types and features.
+    // TODO: go through it and remove the lines we do not need
+    Type topType = tsa.getTopType();
+    Type annotType = tsa.getType(CAS.TYPE_NAME_ANNOTATION);
 
-		// Create the default text Sofa and return CAS view
-		return (CASMgr) casMgr.getCAS().getCurrentView();
-	}
+    tsa.addType(SENT_TYPE, annotType);
+    Type tokenType = tsa.addType(TOKEN_TYPE, annotType);
+    Type tokenTypeType = tsa.addType(TOKEN_TYPE_TYPE, topType);
+    tsa.addType(WORD_TYPE, tokenTypeType);
+    tsa.addType(SEP_TYPE, tokenTypeType);
+    tsa.addType(EOS_TYPE, tokenTypeType);
+    tsa.addFeature(TOKEN_TYPE_FEAT, tokenType, tokenTypeType);
 
-	@After
-	public void tearDown() throws Exception {
+    // Commit the type system.
+    ((CASImpl) casMgr).commitTypeSystem();
 
-	}
+    // Create the Base indexes.
+    try {
+      casMgr.initCASIndexes();
+    } catch (CASException e) {
+      e.printStackTrace();
+    }
 
-	@Test
-	public void testProcessCAS() throws UIMAException, IOException {
-		cas.createAnnotation(sentenceType, 0, 5);
+    FSIndexRepositoryMgr irm = casMgr.getIndexRepositoryMgr();
+    FSIndexComparator comp = irm.createComparator();
+    Type annotation = tsa.getType(CAS.TYPE_NAME_ANNOTATION);
+    comp.setType(annotation);
+    comp.addKey(annotation.getFeatureByBaseName(CAS.FEATURE_BASE_NAME_BEGIN), FSIndexComparator.STANDARD_COMPARE);
+    comp.addKey(annotation.getFeatureByBaseName(CAS.FEATURE_BASE_NAME_END), FSIndexComparator.REVERSE_STANDARD_COMPARE);
+    irm.createIndex(comp, ANNOT_BAG_INDEX, FSIndex.BAG_INDEX);
+    irm.createIndex(comp, ANNOT_SET_INDEX, FSIndex.SET_INDEX);
 
-		AnalysisEngine analysisEngine = AnalysisEngineFactory
-				.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
-						"src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig.xml");
+    // Commit the index repository.
+    irm.commit();
 
-		JCas jCas = cas.getJCas();
-		analysisEngine.process(jCas);
+    // Create the default text Sofa and return CAS view
+    return (CASMgr) casMgr.getCAS().getCurrentView();
+  }
 
-		assertEquals(0, 0);
-	}
+  @After
+  public void tearDown() throws Exception {
+
+  }
+
+  @Test
+  public void testProcessCAS() throws UIMAException, IOException {
+
+    // Test 1: Having unsupported input types throws an exception
+
+    AnalysisEngine analysisEngineWithUnsupported = AnalysisEngineFactory.createEngine(TypeMapper.class,
+            TypeMapper.CONFIG_FILE_NAME,
+            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig_unsupported.xml");
+
+    boolean isExceptionThrown = false;
+    try {
+      analysisEngineWithUnsupported.process(jCas);
+    } catch (AnalysisEngineProcessException e) {
+      isExceptionThrown = true;
+    }
+    assert (isExceptionThrown);
+
+    // Test 2: Supported types are processed properly
+    // TODO: Implement the test 2
+  }
 }
