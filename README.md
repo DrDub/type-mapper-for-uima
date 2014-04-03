@@ -5,11 +5,11 @@ This is a generic tool for the UIMA framework (http://uima.apache.org/ ) that co
 
 The type conversion rules are described in a config file.
 
-At the moment the name of the config file is hardcoded in TypeMapper.java.
-In order to use the tool create an XML file in the resourses: src/resources/com/radialpoint/typemapper/TypeMapperConfig.xml
+The config file is passed to TypeMapper as a parameter "config-file-name".
+See TypeMapperTest.java as an example.
 
 
-Here is the expected format of the file:
+Here is the expected format of the config file:
 <rules>
 	<rule>
 		<input>

@@ -21,34 +21,19 @@
 
 package com.radialpoint.uima.typemapper;
 
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
-import static org.apache.uima.fit.factory.CollectionReaderFactory.createReader;
-import static org.apache.uima.fit.factory.ResourceCreationSpecifierFactory.createResourceCreationSpecifier;
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.uima.UIMAException;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.CASException;
-import org.apache.uima.cas.CASRuntimeException;
-import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.fit.component.CasAnnotator_ImplBase;
-import org.apache.uima.fit.descriptor.SofaCapability;
 import org.apache.uima.fit.descriptor.TypeCapability;
-import org.apache.uima.fit.factory.AggregateBuilder;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
-import org.apache.uima.fit.factory.FlowControllerFactory;
 import org.apache.uima.fit.factory.JCasFactory;
-import org.apache.uima.fit.pipeline.SimplePipeline;
 import org.apache.uima.jcas.JCas;
-import org.apache.uima.util.XMLInputSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,16 +56,7 @@ public class TypeMapperTest {
 
   @Before
   public void setUp() throws Exception {
-    AnalysisEngineDescription detector = (AnalysisEngineDescription) createResourceCreationSpecifier(
-            new XMLInputSource(this.getClass().getClassLoader()
-                    .getResourceAsStream("com/radialpoint/nlp/aggregates/TypeDetectionAggregate.xml"), new File(".")),
-            new Object[0]);
-    AnalysisEngineDescription extractor = (AnalysisEngineDescription) createResourceCreationSpecifier(
-            new XMLInputSource(this.getClass().getClassLoader()
-                    .getResourceAsStream("com/radialpoint/nlp/aggregates/TextExtractionAggregate.xml"), new File(".")),
-            new Object[0]);
-    createEngineDescription(detector);
-    createEngineDescription(extractor);
+    
   }
 
   @After
@@ -90,13 +66,14 @@ public class TypeMapperTest {
 
   @Test
   public void testProcessCAS() throws UIMAException, IOException {
-//	  JCas jCas = JCasFactory.createJCas();
-//	  
-//	  AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(
-//	    TypeMapper.class,
-//	    TypeMapper.PARAM_STRING, "uimaFIT");
-//	    
-//	  analysisEngine.process(jCas);  
+	  JCas jCas = JCasFactory.createJCas();
+	  
+	  AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(
+	    TypeMapper.class,
+	    TypeMapper.CONFIG_FILE_NAME, "TypeMapperConfig.xml");
+	    
+	  analysisEngine.process(jCas);  
+	  
 	  assertEquals(0, 0);    
   }
 
