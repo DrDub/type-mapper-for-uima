@@ -41,19 +41,6 @@ import org.junit.Test;
 
 
 public class TypeMapperTest {
-  private AnalysisEngineDescription engine;
-
-  // private static List<Type> idTextPairs = new ArrayList<>();
-
-  @TypeCapability(inputs = "com.radialpoint.nlp.types.RadialpointDocumentAnnotation")
-  public static class TestTypeMapping extends CasAnnotator_ImplBase {
-
-    @Override
-    public void process(CAS cas) throws AnalysisEngineProcessException {
-      
-    }
-  }
-
   @Before
   public void setUp() throws Exception {
     
@@ -61,8 +48,9 @@ public class TypeMapperTest {
 
   @After
   public void tearDown() throws Exception {
-    engine = null;
+	  
   }
+    
 
   @Test
   public void testProcessCAS() throws UIMAException, IOException {
