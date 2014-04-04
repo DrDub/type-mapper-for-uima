@@ -22,6 +22,12 @@ package com.radialpoint.uima.typemapper;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.commons.collections.MultiHashMap;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
@@ -77,6 +83,10 @@ public class TypeMapperTest {
 
   public static final String PHRASE_TYPE = "Phrase";
 
+  public static final String PARAGRAPH_TYPE = "Paragraph";
+
+  public static final String PIECE_OF_TEXT_TYPE = "PieceOfText";
+
   private CASMgr casMgr;
 
   private CAS cas;
@@ -97,6 +107,8 @@ public class TypeMapperTest {
 
   private Type sentenceType;
 
+  private Type paragraphType;
+
   private Feature startFeature;
 
   private Feature endFeature;
@@ -109,7 +121,6 @@ public class TypeMapperTest {
 
     TypeSystem ts = cas.getTypeSystem();
     wordType = ts.getType(WORD_TYPE);
-    // assert(wordType != null);
     separatorType = ts.getType(SEP_TYPE);
     eosType = ts.getType(EOS_TYPE);
     tokenType = ts.getType(TOKEN_TYPE);
@@ -117,6 +128,7 @@ public class TypeMapperTest {
     startFeature = ts.getFeatureByFullName(CAS.FEATURE_FULL_NAME_BEGIN);
     endFeature = ts.getFeatureByFullName(CAS.FEATURE_FULL_NAME_END);
     sentenceType = ts.getType(SENT_TYPE);
+    paragraphType = ts.getType(PARAGRAPH_TYPE);
     annotationType = ts.getType(CAS.TYPE_NAME_ANNOTATION);
     assert (annotationType != null);
 
@@ -139,6 +151,9 @@ public class TypeMapperTest {
 
     tsa.addType(SENT_TYPE, annotType);
     tsa.addType(PHRASE_TYPE, annotType);
+
+    tsa.addType(PARAGRAPH_TYPE, annotType);
+    tsa.addType(PIECE_OF_TEXT_TYPE, annotType);
 
     Type tokenType = tsa.addType(TOKEN_TYPE, annotType);
     Type tokenTypeType = tsa.addType(TOKEN_TYPE_TYPE, topType);
@@ -191,12 +206,17 @@ public class TypeMapperTest {
     analysisEngineWithUnsupported.process(jCas);
   }
 
-  @Test
-  public void NormalWorkflow() throws ResourceInitializationException, AnalysisEngineProcessException, CASException {
+  @Test(expected = ResourceInitializationException.class)
+  public void MissingFile() throws ResourceInitializationException, AnalysisEngineProcessException {
 
-    int begin = 0, end = 5;
+    AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
+            "src/test/resources/com/radialpoint/uima/typemapper/fileDoesNotExist.xml");
+    analysisEngine.process(jCas);
+  }
 
-    Annotation sentenceAnnotation = (Annotation) cas.createAnnotation(sentenceType, begin, end);
+  @Test(expected = AnalysisEngineProcessException.class)
+  public void BeginAndEndDoNotMatch() throws ResourceInitializationException, AnalysisEngineProcessException {
+    Annotation sentenceAnnotation = (Annotation) cas.createAnnotation(sentenceType, 6, 4);
     sentenceAnnotation.addToIndexes();
 
     AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
@@ -204,19 +224,69 @@ public class TypeMapperTest {
 
     SimplePipeline.runPipeline(cas, analysisEngine);
 
-    AnnotationIndex<AnnotationFS> annotationIdx = cas.getAnnotationIndex(sentenceType);
+    MultiValueMap featureValues = new MultiValueMap();
+
+    featureValues.put("begin", sentenceAnnotation.getBegin());
+    featureValues.put("end", sentenceAnnotation.getEnd());
+
+    VerifyMappedAnnotation(sentenceType, 1, featureValues);
+  }
+
+  @Test
+  public void NormalWorkflow() throws ResourceInitializationException, AnalysisEngineProcessException, CASException {
+
+    Annotation sentenceAnnotation = (Annotation) cas.createAnnotation(sentenceType, 0, 4);
+    sentenceAnnotation.addToIndexes();
+
+    Annotation paragraphAnnotation01 = (Annotation) cas.createAnnotation(paragraphType, 3, 6);
+    paragraphAnnotation01.addToIndexes();
+
+    Annotation paragraphAnnotation02 = (Annotation) cas.createAnnotation(paragraphType, 10, 25);
+    paragraphAnnotation02.addToIndexes();
+
+    AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
+            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig.xml");
+
+    SimplePipeline.runPipeline(cas, analysisEngine);
+
+    MultiValueMap featureValues = new MultiValueMap();
+
+    featureValues.put("begin", sentenceAnnotation.getBegin());
+    featureValues.put("end", sentenceAnnotation.getEnd());
+
+    VerifyMappedAnnotation(sentenceType, 1, featureValues);
+
+    featureValues.clear();
+    featureValues.put("begin", paragraphAnnotation01.getBegin());
+    featureValues.put("end", paragraphAnnotation01.getEnd());
+    featureValues.put("begin", paragraphAnnotation02.getBegin());
+    featureValues.put("end", paragraphAnnotation02.getEnd());
+
+    VerifyMappedAnnotation(paragraphType, 2, featureValues);
+
+  }
+
+  private void VerifyMappedAnnotation(Type type, int number, MultiValueMap featureValues) {
+    AnnotationIndex<AnnotationFS> annotationIdx = cas.getAnnotationIndex(type);
+
     assert (annotationIdx != null);
+    assertEquals(number, annotationIdx.size());
 
     FSIterator<AnnotationFS> fsIter = annotationIdx.iterator();
+    Object[] beginArray = featureValues.getCollection("begin").toArray();
+    Object[] endArray = featureValues.getCollection("end").toArray();
 
+    assert ((beginArray.length == endArray.length) && (beginArray.length == annotationIdx.size()));
+
+    int i = 0;
     while (fsIter.isValid()) {
       AnnotationFS annotation = fsIter.get();
-      assertEquals(begin, annotation.getBegin());
-      assertEquals(end, annotation.getEnd());
+
+      assertEquals(beginArray[i], annotation.getBegin());
+      assertEquals(endArray[i], annotation.getEnd());
+
       fsIter.moveToNext();
+      ++i;
     }
-
-    assertEquals(1, annotationIdx.size());
-
   }
 }

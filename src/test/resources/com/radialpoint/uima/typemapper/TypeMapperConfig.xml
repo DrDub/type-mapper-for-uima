@@ -8,4 +8,12 @@
 			Phrase
 		</output>
 	</rule>
+	<rule>
+		<input>
+			Paragraph
+		</input>
+		<output>
+			PieceOfText
+		</output>
+	</rule>
 </rules>
