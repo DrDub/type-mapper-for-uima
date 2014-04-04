@@ -39,6 +39,8 @@ public class RuleProcessor {
     String targetTypeStr = rule.getOutput();
 
     Type sourceType = jcas.getRequiredType(sourceTypeStr);
+    Type targetType = jcas.getRequiredType(targetTypeStr);
+
     AnnotationIndex<Annotation> idxSrc = (AnnotationIndex<Annotation>) jcas.getAnnotationIndex(sourceType);
     Iterator<Annotation> itSrc = idxSrc.iterator();
 
@@ -46,7 +48,7 @@ public class RuleProcessor {
 
       Annotation annotation = (Annotation) itSrc.next();
 
-      AnnotationUtils.createAnnotation(jcas, targetTypeStr, annotation.getBegin(), annotation.getEnd());
+      AnnotationUtils.createAnnotation(jcas, targetType, annotation.getBegin(), annotation.getEnd());
     }
 
   }

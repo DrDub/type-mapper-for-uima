@@ -32,25 +32,17 @@ public class AnnotationUtils {
   private AnnotationUtils() {
   }
 
-  public static void createAnnotation(JCas aJCas, String annotationNameToCreate, int beginFeatureValue,
-          int endFeatureValue) throws AnalysisEngineProcessException, CASException {
+  public static void createAnnotation(JCas aJCas, Type targetType, int beginFeatureValue, int endFeatureValue)
+          throws AnalysisEngineProcessException, CASException {
 
-    Type targetType = aJCas.getRequiredType(annotationNameToCreate);
+    CAS cas = aJCas.getCas();
 
-    try {
+    Annotation annotation = (Annotation) cas.createAnnotation(targetType, beginFeatureValue, endFeatureValue);
 
-      CAS cas = aJCas.getCas();
-
-      Annotation annotation = (Annotation) cas.createAnnotation(targetType, beginFeatureValue, endFeatureValue);
-
-      if (beginFeatureValue < endFeatureValue) {
-        annotation.addToIndexes();
-      } else {
-        throw new AnalysisEngineProcessException("Begin and end features do not match", null);
-      }
-
-    } catch (Exception e) {
-      throw new AnalysisEngineProcessException("Annotation creation failed!", null, e);
+    if (beginFeatureValue < endFeatureValue) {
+      annotation.addToIndexes();
+    } else {
+      throw new AnalysisEngineProcessException("Begin and end features do not match", null);
     }
   }
 }
