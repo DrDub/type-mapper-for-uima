@@ -36,11 +36,10 @@ public class RuleProcessor {
 
   public static void processRule(Rule rule, JCas jcas) throws AnalysisEngineProcessException, CASException {
     String sourceTypeStr = rule.getInput();
-
     String targetTypeStr = rule.getOutput();
 
-    Type typeSrc = jcas.getRequiredType(sourceTypeStr);
-    AnnotationIndex<Annotation> idxSrc = (AnnotationIndex<Annotation>) jcas.getAnnotationIndex(typeSrc);
+    Type sourceType = jcas.getRequiredType(sourceTypeStr);
+    AnnotationIndex<Annotation> idxSrc = (AnnotationIndex<Annotation>) jcas.getAnnotationIndex(sourceType);
     Iterator<Annotation> itSrc = idxSrc.iterator();
 
     while (itSrc.hasNext()) {

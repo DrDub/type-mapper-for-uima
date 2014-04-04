@@ -23,13 +23,18 @@ package com.radialpoint.uima.typemapper;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.uima.UIMAException;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.cas.FSIndex;
+import org.apache.uima.cas.FSIterator;
 import org.apache.uima.cas.Feature;
+import org.apache.uima.cas.FeatureStructure;
 import org.apache.uima.cas.Type;
 import org.apache.uima.cas.TypeSystem;
 import org.apache.uima.cas.admin.CASFactory;
@@ -38,11 +43,18 @@ import org.apache.uima.cas.admin.FSIndexComparator;
 import org.apache.uima.cas.admin.FSIndexRepositoryMgr;
 import org.apache.uima.cas.admin.TypeSystemMgr;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
+import org.apache.uima.fit.pipeline.SimplePipeline;
+import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.FSArray;
+import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.CasCreationUtils;
 import org.apache.uima.cas.impl.CASImpl;
+import org.apache.uima.cas.text.AnnotationFS;
+import org.apache.uima.cas.text.AnnotationIndex;
+import org.codehaus.jackson.format.InputAccessor.Std;
 
 import org.junit.After;
 import org.junit.Before;
@@ -73,6 +85,8 @@ public class TypeMapperTest {
   public static final String EOS_TYPE = "EndOfSentence";
 
   public static final String SENT_TYPE = "Sentence";
+
+  public static final String PHRASE_TYPE = "Phrase";
 
   private CASMgr casMgr;
 
@@ -135,6 +149,8 @@ public class TypeMapperTest {
     Type annotType = tsa.getType(CAS.TYPE_NAME_ANNOTATION);
 
     tsa.addType(SENT_TYPE, annotType);
+    tsa.addType(PHRASE_TYPE, annotType);
+
     Type tokenType = tsa.addType(TOKEN_TYPE, annotType);
     Type tokenTypeType = tsa.addType(TOKEN_TYPE_TYPE, topType);
     tsa.addType(WORD_TYPE, tokenTypeType);
@@ -177,6 +193,14 @@ public class TypeMapperTest {
   public void testProcessCAS() throws UIMAException, IOException {
 
     // Test 1: Having unsupported input types throws an exception
+    // UnsupportedInputTypes();
+
+    // Test 2: Supported types are processed properly
+    SupportedInputTypes();
+
+  }
+
+  private void UnsupportedInputTypes() throws ResourceInitializationException {
 
     AnalysisEngine analysisEngineWithUnsupported = AnalysisEngineFactory.createEngine(TypeMapper.class,
             TypeMapper.CONFIG_FILE_NAME,
@@ -189,8 +213,34 @@ public class TypeMapperTest {
       isExceptionThrown = true;
     }
     assert (isExceptionThrown);
+  }
 
-    // Test 2: Supported types are processed properly
-    // TODO: Implement the test 2
+  private void SupportedInputTypes() throws ResourceInitializationException, AnalysisEngineProcessException,
+          CASException {
+
+    int begin = 0, end = 5;
+
+    Annotation sentenceAnnotation = (Annotation) cas.createAnnotation(sentenceType, begin, end);
+    sentenceAnnotation.addToIndexes();
+
+    AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
+            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig.xml");
+
+    SimplePipeline.runPipeline(cas, analysisEngine);
+
+    AnnotationIndex<AnnotationFS> annotationIdx = cas.getAnnotationIndex(sentenceType);
+    assert (annotationIdx != null);
+
+    FSIterator<AnnotationFS> fsIter = annotationIdx.iterator();
+
+    while (fsIter.isValid()) {
+      AnnotationFS annotation = fsIter.get();
+      assertEquals(begin, annotation.getBegin());
+      assertEquals(end, annotation.getEnd());
+      fsIter.moveToNext();
+    }
+
+    assertEquals(1, annotationIdx.size());
+
   }
 }

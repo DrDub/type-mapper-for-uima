@@ -18,14 +18,12 @@
 //	specific language governing permissions and limitations
 //	under the License.
 
-
 package com.radialpoint.uima.typemapper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
+import org.apache.uima.cas.CAS;
+import org.apache.uima.cas.CASException;
+import org.apache.uima.cas.Type;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.Annotation;
 
@@ -35,26 +33,18 @@ public class AnnotationUtils {
   }
 
   public static void createAnnotation(JCas aJCas, String annotationNameToCreate, int beginFeatureValue,
-          int endFeatureValue) throws AnalysisEngineProcessException {
+          int endFeatureValue) throws AnalysisEngineProcessException, CASException {
+
+    Type targetType = aJCas.getRequiredType(annotationNameToCreate);
 
     try {
 
-      // TODO: review the usage of reflection here, use the basic functionality of CAS instead
-      Class<Annotation> TgtClass = (Class<Annotation>) Class.forName(annotationNameToCreate);
+      CAS cas = aJCas.getCas();
 
-      Constructor<?> tgtConstr = TgtClass.getConstructor(new Class[] { JCas.class });
-
-      Object t = tgtConstr.newInstance(new Object[] { aJCas });
-
-      Method setBegin = TgtClass.getMethod("setBegin", Integer.TYPE);
-      Method setEnd = TgtClass.getMethod("setEnd", Integer.TYPE);
-
-      setBegin.invoke(t, beginFeatureValue);
-      setEnd.invoke(t, endFeatureValue);
+      Annotation annotation = (Annotation) cas.createAnnotation(targetType, beginFeatureValue, endFeatureValue);
 
       if (beginFeatureValue < endFeatureValue) {
-        Method addToIndexes = TgtClass.getMethod("addToIndexes", new Class[] {});
-        addToIndexes.invoke(t);
+        annotation.addToIndexes();
       } else {
         throw new AnalysisEngineProcessException("Begin and end features do not match", null);
       }
