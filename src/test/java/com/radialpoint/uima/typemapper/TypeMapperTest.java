@@ -59,6 +59,7 @@ import org.codehaus.jackson.format.InputAccessor.Std;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class TypeMapperTest {
 
@@ -184,38 +185,17 @@ public class TypeMapperTest {
     return (CASMgr) casMgr.getCAS().getCurrentView();
   }
 
-  @After
-  public void tearDown() throws Exception {
-
-  }
-
-  @Test
-  public void testProcessCAS() throws UIMAException, IOException {
-
-    // Test 1: Having unsupported input types throws an exception
-    // UnsupportedInputTypes();
-
-    // Test 2: Supported types are processed properly
-    SupportedInputTypes();
-
-  }
-
-  private void UnsupportedInputTypes() throws ResourceInitializationException {
+  @Test(expected = AnalysisEngineProcessException.class)
+  public void UnsupportedInputTypes() throws ResourceInitializationException, AnalysisEngineProcessException {
 
     AnalysisEngine analysisEngineWithUnsupported = AnalysisEngineFactory.createEngine(TypeMapper.class,
             TypeMapper.CONFIG_FILE_NAME,
             "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig_unsupported.xml");
-
-    boolean isExceptionThrown = false;
-    try {
-      analysisEngineWithUnsupported.process(jCas);
-    } catch (AnalysisEngineProcessException e) {
-      isExceptionThrown = true;
-    }
-    assert (isExceptionThrown);
+    analysisEngineWithUnsupported.process(jCas);
   }
 
-  private void SupportedInputTypes() throws ResourceInitializationException, AnalysisEngineProcessException,
+  @Test
+  public void SupportedInputTypes() throws ResourceInitializationException, AnalysisEngineProcessException,
           CASException {
 
     int begin = 0, end = 5;
