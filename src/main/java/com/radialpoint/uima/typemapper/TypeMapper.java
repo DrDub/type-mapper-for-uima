@@ -33,37 +33,34 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 
 public class TypeMapper extends JCasAnnotator_ImplBase {
-	
-	  public static final String CONFIG_FILE_NAME = "config-file-name";
 
-	  @ConfigurationParameter(name = CONFIG_FILE_NAME)
-	  private String configFileName;
-	  
-	  private Rules rules;
-	
-	  @Override
-	  public void initialize(UimaContext context) throws ResourceInitializationException {
-	    super.initialize(context);
-	    
-	    try {
-		  this.rules = RulesFileLoader.loadRulesFromFile(configFileName);
-		} catch (JAXBException | FileNotFoundException e) {
-		  throw new ResourceInitializationException(e);
-		}
+  public static final String CONFIG_FILE_NAME = "config-file-name";
+
+  @ConfigurationParameter(name = CONFIG_FILE_NAME)
+  private String configFileName;
+
+  private Rules rules;
+
+  @Override
+  public void initialize(UimaContext context) throws ResourceInitializationException {
+    super.initialize(context);
+
+    try {
+      this.rules = RulesFileLoader.loadRulesFromFile(configFileName);
+    } catch (JAXBException | FileNotFoundException e) {
+      throw new ResourceInitializationException(e);
+    }
   }
 
   @Override
   public void process(JCas aJCas) throws AnalysisEngineProcessException {
-	  	if (this.rules == null) {
-	  		throw new AnalysisEngineProcessException("Rules List is empty!", null);
-	    }
-	
-	    for (Rule rule : this.rules.getRuleList()) {
-	      try {
-	        RuleProcessor.processRule(rule, aJCas);
-	      } catch (CASException e) {
-	        throw new AnalysisEngineProcessException(e);
-	      }
-	    }
+
+    for (Rule rule : this.rules.getRuleList()) {
+      try {
+        RuleProcessor.processRule(rule, aJCas);
+      } catch (CASException e) {
+        throw new AnalysisEngineProcessException(e);
+      }
+    }
   }
 }

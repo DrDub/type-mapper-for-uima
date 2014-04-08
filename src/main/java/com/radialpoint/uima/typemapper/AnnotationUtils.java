@@ -42,7 +42,8 @@ public class AnnotationUtils {
     if (beginFeatureValue < endFeatureValue) {
       annotation.addToIndexes();
     } else {
-      throw new AnalysisEngineProcessException("Begin and end features do not match", null);
+      throw new AnalysisEngineProcessException(
+              "Begin feature value cannot be bigger or equal to the end feature value.", null);
     }
   }
 }

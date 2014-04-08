@@ -22,6 +22,8 @@ package com.radialpoint.uima.typemapper;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -39,17 +41,17 @@ public class RulesFileLoader {
 
   public static Rules loadRulesFromFile(String fileResourceName) throws JAXBException, FileNotFoundException {
 
-    Rules rules = null;
+    Rules rules = new Rules();
 
     // Get a stream from path
-    FileInputStream stream = new FileInputStream  (fileResourceName);
-    
+    FileInputStream stream = new FileInputStream(fileResourceName);
+
     // Unmarshal
     JAXBContext jc = JAXBContext.newInstance(Rules.class, Rule.class);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     rules = (Rules) unmarshaller.unmarshal(stream);
 
-    if ( rules == null || CollectionUtils.isEmpty(rules.getRuleList()) ) {
+    if (rules == null || CollectionUtils.isEmpty(rules.getRuleList())) {
       throw new JAXBException("Rules list is empty. Binding error?");
     }
 

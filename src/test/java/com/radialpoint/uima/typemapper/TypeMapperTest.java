@@ -54,6 +54,7 @@ import org.apache.uima.cas.text.AnnotationFS;
 import org.apache.uima.cas.text.AnnotationIndex;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.internal.runners.statements.Fail;
 
 public class TypeMapperTest {
 
@@ -189,38 +190,38 @@ public class TypeMapperTest {
   }
 
   @Test(expected = AnalysisEngineProcessException.class)
-  public void UnsupportedInputTypes() throws ResourceInitializationException, AnalysisEngineProcessException {
+  public void testUnsupportedInputTypes() throws ResourceInitializationException, AnalysisEngineProcessException {
 
     AnalysisEngine analysisEngineWithUnsupported = AnalysisEngineFactory.createEngine(TypeMapper.class,
             TypeMapper.CONFIG_FILE_NAME,
-            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig_unsupportedInput.xml");
+            "src/test/resources/com/radialpoint/uima/typemapper/UnsupportedInputConfig.xml");
     analysisEngineWithUnsupported.process(jCas);
   }
 
   @Test(expected = AnalysisEngineProcessException.class)
-  public void UnsupportedOutputTypes() throws ResourceInitializationException, AnalysisEngineProcessException {
+  public void testUnsupportedOutputTypes() throws ResourceInitializationException, AnalysisEngineProcessException {
 
     AnalysisEngine analysisEngineWithUnsupported = AnalysisEngineFactory.createEngine(TypeMapper.class,
             TypeMapper.CONFIG_FILE_NAME,
-            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig_unsupportedOutput.xml");
+            "src/test/resources/com/radialpoint/uima/typemapper/UnsupportedOutputConfig.xml");
     analysisEngineWithUnsupported.process(jCas);
   }
 
   @Test(expected = ResourceInitializationException.class)
-  public void MissingFile() throws ResourceInitializationException, AnalysisEngineProcessException {
+  public void testMissingFile() throws ResourceInitializationException, AnalysisEngineProcessException {
 
     AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
-            "src/test/resources/com/radialpoint/uima/typemapper/fileDoesNotExist.xml");
+            "src/test/resources/com/radialpoint/uima/typemapper/FileDoesNotExist.xml");
     analysisEngine.process(jCas);
   }
 
   @Test(expected = AnalysisEngineProcessException.class)
-  public void BeginAndEndDoNotMatch() throws ResourceInitializationException, AnalysisEngineProcessException {
+  public void testBeginAndEndDoNotMatch() throws ResourceInitializationException, AnalysisEngineProcessException {
     Annotation sentenceAnnotation = (Annotation) cas.createAnnotation(sentenceType, 6, 4);
     sentenceAnnotation.addToIndexes();
 
     AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
-            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig.xml");
+            "src/test/resources/com/radialpoint/uima/typemapper/NormalWorkflowConfig.xml");
 
     SimplePipeline.runPipeline(cas, analysisEngine);
 
@@ -229,11 +230,11 @@ public class TypeMapperTest {
     featureValues.put("begin", sentenceAnnotation.getBegin());
     featureValues.put("end", sentenceAnnotation.getEnd());
 
-    VerifyMappedAnnotation(sentenceType, 1, featureValues);
+    verifyMappedAnnotation(sentenceType, 1, featureValues);
   }
 
   @Test
-  public void NormalWorkflow() throws ResourceInitializationException, AnalysisEngineProcessException, CASException {
+  public void testNormalWorkflow() throws ResourceInitializationException, AnalysisEngineProcessException, CASException {
 
     Annotation sentenceAnnotation = (Annotation) cas.createAnnotation(sentenceType, 0, 4);
     sentenceAnnotation.addToIndexes();
@@ -245,7 +246,7 @@ public class TypeMapperTest {
     paragraphAnnotation02.addToIndexes();
 
     AnalysisEngine analysisEngine = AnalysisEngineFactory.createEngine(TypeMapper.class, TypeMapper.CONFIG_FILE_NAME,
-            "src/test/resources/com/radialpoint/uima/typemapper/TypeMapperConfig.xml");
+            "src/test/resources/com/radialpoint/uima/typemapper/NormalWorkflowConfig.xml");
 
     SimplePipeline.runPipeline(cas, analysisEngine);
 
@@ -254,7 +255,7 @@ public class TypeMapperTest {
     featureValues.put("begin", sentenceAnnotation.getBegin());
     featureValues.put("end", sentenceAnnotation.getEnd());
 
-    VerifyMappedAnnotation(sentenceType, 1, featureValues);
+    verifyMappedAnnotation(sentenceType, 1, featureValues);
 
     featureValues.clear();
     featureValues.put("begin", paragraphAnnotation01.getBegin());
@@ -262,21 +263,22 @@ public class TypeMapperTest {
     featureValues.put("begin", paragraphAnnotation02.getBegin());
     featureValues.put("end", paragraphAnnotation02.getEnd());
 
-    VerifyMappedAnnotation(paragraphType, 2, featureValues);
+    verifyMappedAnnotation(paragraphType, 2, featureValues);
 
   }
 
-  private void VerifyMappedAnnotation(Type type, int number, MultiValueMap featureValues) {
+  private void verifyMappedAnnotation(Type type, int expectedSize, MultiValueMap featureValues) {
     AnnotationIndex<AnnotationFS> annotationIdx = cas.getAnnotationIndex(type);
 
     assert (annotationIdx != null);
-    assertEquals(number, annotationIdx.size());
+    assertEquals(expectedSize, annotationIdx.size());
 
     FSIterator<AnnotationFS> fsIter = annotationIdx.iterator();
     Object[] beginArray = featureValues.getCollection("begin").toArray();
     Object[] endArray = featureValues.getCollection("end").toArray();
 
-    assert ((beginArray.length == endArray.length) && (beginArray.length == annotationIdx.size()));
+    assertEquals(beginArray.length, endArray.length);
+    assertEquals(beginArray.length, annotationIdx.size());
 
     int i = 0;
     while (fsIter.isValid()) {
