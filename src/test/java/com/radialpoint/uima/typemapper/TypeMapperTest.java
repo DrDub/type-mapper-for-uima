@@ -22,11 +22,6 @@ package com.radialpoint.uima.typemapper;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import org.apache.commons.collections.MultiHashMap;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
@@ -54,7 +49,7 @@ import org.apache.uima.cas.text.AnnotationFS;
 import org.apache.uima.cas.text.AnnotationIndex;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.internal.runners.statements.Fail;
+import static org.junit.Assert.*;
 
 public class TypeMapperTest {
 
@@ -270,7 +265,7 @@ public class TypeMapperTest {
   private void verifyMappedAnnotation(Type type, int expectedSize, MultiValueMap featureValues) {
     AnnotationIndex<AnnotationFS> annotationIdx = cas.getAnnotationIndex(type);
 
-    assert (annotationIdx != null);
+    assertNotNull(annotationIdx);
     assertEquals(expectedSize, annotationIdx.size());
 
     FSIterator<AnnotationFS> fsIter = annotationIdx.iterator();
