@@ -18,14 +18,12 @@
 //	specific language governing permissions and limitations
 //	under the License.
 
-
 package com.radialpoint.uima.typemapper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
+import org.apache.uima.cas.CAS;
+import org.apache.uima.cas.CASException;
+import org.apache.uima.cas.Type;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.Annotation;
 
@@ -34,33 +32,18 @@ public class AnnotationUtils {
   private AnnotationUtils() {
   }
 
-  public static void createAnnotation(JCas aJCas, String annotationNameToCreate, int beginFeatureValue,
-          int endFeatureValue) throws AnalysisEngineProcessException {
+  public static void createAnnotation(JCas aJCas, Type targetType, int beginFeatureValue, int endFeatureValue)
+          throws AnalysisEngineProcessException, CASException {
 
-    try {
+    CAS cas = aJCas.getCas();
 
-      // TODO: review the usage of reflection here, use the basic functionality of CAS instead
-      Class<Annotation> TgtClass = (Class<Annotation>) Class.forName(annotationNameToCreate);
+    Annotation annotation = (Annotation) cas.createAnnotation(targetType, beginFeatureValue, endFeatureValue);
 
-      Constructor<?> tgtConstr = TgtClass.getConstructor(new Class[] { JCas.class });
-
-      Object t = tgtConstr.newInstance(new Object[] { aJCas });
-
-      Method setBegin = TgtClass.getMethod("setBegin", Integer.TYPE);
-      Method setEnd = TgtClass.getMethod("setEnd", Integer.TYPE);
-
-      setBegin.invoke(t, beginFeatureValue);
-      setEnd.invoke(t, endFeatureValue);
-
-      if (beginFeatureValue < endFeatureValue) {
-        Method addToIndexes = TgtClass.getMethod("addToIndexes", new Class[] {});
-        addToIndexes.invoke(t);
-      } else {
-        throw new AnalysisEngineProcessException("Begin and end features do not match", null);
-      }
-
-    } catch (Exception e) {
-      throw new AnalysisEngineProcessException("Annotation creation failed!", null, e);
+    if (beginFeatureValue < endFeatureValue) {
+      annotation.addToIndexes();
+    } else {
+      throw new AnalysisEngineProcessException(
+              "Begin feature value cannot be bigger or equal to the end feature value.", null);
     }
   }
 }

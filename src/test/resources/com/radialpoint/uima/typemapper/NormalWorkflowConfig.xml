@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+	<rule>
+		<input>
+			Sentence
+		</input>
+		<output>
+			Phrase
+		</output>
+	</rule>
+	<rule>
+		<input>
+			Paragraph
+		</input>
+		<output>
+			PieceOfText
+		</output>
+	</rule>
+</rules>

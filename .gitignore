@@ -1,4 +1,5 @@
-TypeMapperConfig.xml
+*.log
+*.bak
 .classpath
 .project
 .settings/
