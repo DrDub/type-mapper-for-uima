@@ -21,14 +21,15 @@
 package com.radialpoint.uima.typemapper;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.uima.UimaContext;
-import org.apache.uima.fit.component.JCasAnnotator_ImplBase;
-import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
+import org.apache.uima.fit.component.JCasAnnotator_ImplBase;
+import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 
@@ -46,7 +47,11 @@ public class TypeMapper extends JCasAnnotator_ImplBase {
     super.initialize(context);
 
     try {
-      this.rules = RulesFileLoader.loadRulesFromFile(configFileName);
+      InputStream stream = this.getClass().getResourceAsStream(configFileName);
+      if (stream != null)
+        this.rules =  RulesFileLoader.loadRulesFromStream(stream);
+      else
+        this.rules = RulesFileLoader.loadRulesFromFile(configFileName);
     } catch (JAXBException | FileNotFoundException e) {
       throw new ResourceInitializationException(e);
     }

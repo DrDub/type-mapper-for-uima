@@ -22,6 +22,8 @@ package com.radialpoint.uima.typemapper;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -38,11 +40,12 @@ public class RulesFileLoader {
   }
 
   public static Rules loadRulesFromFile(String fileResourceName) throws JAXBException, FileNotFoundException {
+    return loadRulesFromStream(new FileInputStream(fileResourceName));
+  }
+
+  public static Rules loadRulesFromStream(InputStream stream) throws JAXBException, FileNotFoundException {
 
     Rules rules = new Rules();
-
-    // Get a stream from path
-    FileInputStream stream = new FileInputStream(fileResourceName);
 
     // Unmarshal
     JAXBContext jc = JAXBContext.newInstance(Rules.class, Rule.class);
